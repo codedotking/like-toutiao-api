@@ -21,3 +21,8 @@ model User {
   registration_date DateTime  @default(now())
   last_login        DateTime?
 }
+
+model Article{
+  article_id       Int       @id @default(autoincrement())
+  title            String
+}
