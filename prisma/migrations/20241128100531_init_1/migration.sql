@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `User` MODIFY `registration_date` DATETIME(3) NULL DEFAULT CURRENT_TIMESTAMP(3);
