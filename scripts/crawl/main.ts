@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-
+import jsonbig from "json-bigint";
 interface userInfo {
   name: string;
   description: string;
@@ -19,6 +19,7 @@ interface Articele {
   authorId: number;
   article_type: number;
   abstract: string;
+  item_id: string;
   user_info: userInfo;
 }
 
@@ -51,14 +52,20 @@ const insertUserList = async (data: Articele[]) => {
 };
 
 const insertArticleList = async (data: Articele[]) => {
-  const userIdDict = await getUserIdDict();
+  const userList = await db.user.findMany();
+  const userIdDict = userList.reduce((acc, item) => {
+    acc[item.user_id] = item.id;
+    return acc;
+  }, {} as Record<string, number>);
 
+  // 插入文章
   const articleList = data.map((item: Articele) => {
     const {
       title = "",
       user_info: { user_id },
       article_type,
       abstract,
+      item_id: article_id,
     } = item;
     const authorId = userIdDict[user_id];
     return {
@@ -66,21 +73,18 @@ const insertArticleList = async (data: Articele[]) => {
       authorId,
       type: article_type,
       abstract,
+      published: true, // 爬取的文章直接发布
+      source: "toutiao",
+      is_crawled: true,
+      article_id,
     };
   });
 
   const r = await db.article.createMany({
     data: articleList,
+    skipDuplicates: true,
   });
   console.log(r.count);
-};
-
-const getUserIdDict = async () => {
-  const userList = await db.user.findMany();
-  return userList.reduce((acc, item) => {
-    acc[item.user_id] = item.id;
-    return acc;
-  }, {} as Record<string, number>);
 };
 
 const news = async () => {
@@ -89,7 +93,7 @@ const news = async () => {
     const { data = [] } = await res.json();
     const articleList = data
       .map(({ content }: { content: string }) => {
-        return JSON.parse(content) || {};
+        return jsonbig.parse(content) || {};
       })
       .filter(
         ({ user_info }: { user_info: userInfo }) => user_info
@@ -100,4 +104,5 @@ const news = async () => {
     console.log(e);
   }
 };
+
 news();

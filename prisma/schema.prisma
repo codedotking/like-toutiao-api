@@ -42,13 +42,20 @@ model Article {
 
   authorId Int // 作者 ID
 
-  like_count    Int @default(0) // 点赞数
-  digg_count    Int @default(0) // 推荐数
-  bury_count    Int @default(0) // 踩数
-  comment_count Int @default(0) // 评论数
-  read_count    Int @default(0) // 阅读数
-  repin_count   Int @default(0) // 转发数
-  share_count   Int @default(0) // 分享数
+  like_count    BigInt @default(0) // 点赞数
+  digg_count    BigInt @default(0) // 推荐数
+  bury_count    BigInt @default(0) // 踩数
+  comment_count BigInt @default(0) // 评论数
+  read_count    BigInt @default(0) // 阅读数
+  repin_count   BigInt @default(0) // 转发数
+  share_count   BigInt @default(0) // 分享数
 
   author User @relation(fields: [authorId], references: [id]) // 作者
+
+  is_crawled Boolean @default(false) // 是否爬取
+  source       String? // 爬取网站
+  article_id String? @unique // 爬取头条数据时有用
+
+  // 联合主键
+  @@unique([article_id, source])
 }
