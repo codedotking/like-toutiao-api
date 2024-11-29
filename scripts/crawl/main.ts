@@ -8,7 +8,7 @@ interface userInfo {
   follower_count: number;
   schema: string;
   avatar_url: string;
-  user_id: number;
+  user_id: string;
   user_verified: boolean;
   user_auth_info: string;
   live_info_type: number;
@@ -16,23 +16,24 @@ interface userInfo {
 interface Articele {
   title: string;
   source: string;
+  authorId: number;
   user_info: userInfo;
 }
 
-const insertUserList = async (data: { content: string }[]) => {
+const insertUserList = async (data: Articele[]) => {
   const userList = data
-    .map(({ content }: { content: string }) => {
-      const { user_info }: Articele = JSON.parse(content) || {};
+    .map((item) => {
+      const { user_info }: Articele = item;
       return user_info;
     })
-    .filter((item: userInfo) => item);
 
   // 插入用户信息
-  const u = await db.user.createMany({
+  const { count } = await db.user.createMany({
     data: userList
       .filter((item: userInfo) => item)
       .map((item: userInfo) => {
         return {
+          user_id: `${item.user_id}`,
           name: item.name,
           description: item.description,
           verified_content: item.verified_content,
@@ -43,32 +44,54 @@ const insertUserList = async (data: { content: string }[]) => {
           email: `${item.user_id}@example.com`,
         };
       }),
+    skipDuplicates: true
   });
-  console.log(u.count);
+  console.log(count);
 };
+
+
+const insertArticleList = async (data: Articele[]) => {
+  const userIdDict = await getUserIdDict();
+
+  const articleList = data.map((item: Articele) => {
+    const { title = "", user_info: { user_id } } = item;
+    const authorId = userIdDict[user_id];
+    return {
+      title,
+      authorId
+    };
+  })
+
+  const r = await db.article.createMany({
+    data: articleList
+  });
+  console.log(r.count);
+};
+
+
+
+const getUserIdDict = async () => {
+  const userList = await db.user.findMany();
+  return userList.reduce((acc, item) => {
+    acc[item.user_id] = item.id;
+    return acc;
+  }, {} as Record<string, number>);
+}
+
+
+
 
 const news = async () => {
   try {
     const res = await fetch("https://lf.snssdk.com/api/news/feed/v88/");
     const { data = [] } = await res.json();
-    console.log(`data length ${data.length}`);
-    try {
-      await insertUserList(data);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (e) {
-      console.log("出错");
-    }
+    const articleList = data
+      .map(({ content }: { content: string }) => {
+        return JSON.parse(content) || {};
+      }).filter(({ user_info }: { user_info: userInfo }) => user_info) as Articele[];
+    await insertUserList(articleList);
+    await insertArticleList(articleList);
 
-    const r = await db.article.createMany({
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      data: data.map(({ content: item }: any) => {
-        const { title = "" } = JSON.parse(item) || {};
-        return {
-          title,
-        };
-      }),
-    });
-    console.log(r.count);
   } catch (e) {
     console.log(e);
   }

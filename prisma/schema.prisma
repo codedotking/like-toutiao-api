@@ -8,27 +8,37 @@ datasource db {
 }
 
 model User {
-  id                Int       @id @default(autoincrement())
-  name              String    @unique
-  description       String?    // 个人简介
-  verified_content  String?   // 认证内容
-  user_verified      Boolean? // 是否认证
+  id               Int      @id @default(autoincrement())
+  name             String   @unique
+  description      String? // 个人简介
+  verified_content String? // 认证内容
+  user_verified    Boolean? // 是否认证
+  user_id          String   @unique
 
   follower_count    Int       @default(0) // 粉丝数
-  avatar_url        String?    // 头像
+  avatar_url        String? // 头像
   password          String?
   email             String?   @unique
-  registration_date DateTime?  @default(now())
+  registration_date DateTime? @default(now())
   last_login        DateTime?
   articles          Article[]
 }
 
 model Article {
-  id        Int     @id @default(autoincrement())
-  title     String
-  source    String
-  content   String?
-  published Boolean @default(false)
-  author    User    @relation(fields: [authorId], references: [id])
-  authorId  Int
+  id       Int     @id @default(autoincrement())
+  title    String
+  content  String?
+  
+  abstract String? // 摘要
+
+  published     Boolean @default(false)
+  author        User    @relation(fields: [authorId], references: [id])
+  authorId      Int
+  like_count    Int     @default(0) // 点赞数
+  digg_count    Int     @default(0) // 推荐数
+  bury_count    Int     @default(0) // 踩数
+  comment_count Int     @default(0) // 评论数
+  read_count    Int     @default(0) // 阅读数
+  repin_count   Int     @default(0) // 转发数
+  share_count   Int     @default(0) // 分享数
 }
