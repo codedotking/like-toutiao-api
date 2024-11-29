@@ -8,37 +8,47 @@ datasource db {
 }
 
 model User {
-  id               Int      @id @default(autoincrement())
-  name             String   @unique
-  description      String? // 个人简介
+  id          Int     @id @default(autoincrement())
+  name        String  @unique // 昵称
+  description String? // 个人简介
+
   verified_content String? // 认证内容
   user_verified    Boolean? // 是否认证
-  user_id          String   @unique
 
-  follower_count    Int       @default(0) // 粉丝数
-  avatar_url        String? // 头像
-  password          String?
-  email             String?   @unique
-  registration_date DateTime? @default(now())
-  last_login        DateTime?
-  articles          Article[]
+  follower_count Int     @default(0) // 粉丝数
+  avatar_url     String? @db.Text // 头像 
+
+  email    String? @unique // 邮箱 
+  password String? // 密码 
+
+  registration_date DateTime? @default(now()) // 注册日期
+  last_login        DateTime? // 最后登录
+
+  articles Article[]
+
+  user_id String @unique // 爬取头条数据时有用
 }
 
 model Article {
-  id       Int     @id @default(autoincrement())
-  title    String
-  content  String?
-  
-  abstract String? // 摘要
+  id Int @id @default(autoincrement())
 
-  published     Boolean @default(false)
-  author        User    @relation(fields: [authorId], references: [id])
-  authorId      Int
-  like_count    Int     @default(0) // 点赞数
-  digg_count    Int     @default(0) // 推荐数
-  bury_count    Int     @default(0) // 踩数
-  comment_count Int     @default(0) // 评论数
-  read_count    Int     @default(0) // 阅读数
-  repin_count   Int     @default(0) // 转发数
-  share_count   Int     @default(0) // 分享数
+  title    String // 标题
+  abstract String? // 摘要
+  content  String? // 内容
+
+  type Int // 类型 0 文章 1 微头条
+
+  published Boolean @default(false) // 是否发布
+
+  authorId Int // 作者 ID
+
+  like_count    Int @default(0) // 点赞数
+  digg_count    Int @default(0) // 推荐数
+  bury_count    Int @default(0) // 踩数
+  comment_count Int @default(0) // 评论数
+  read_count    Int @default(0) // 阅读数
+  repin_count   Int @default(0) // 转发数
+  share_count   Int @default(0) // 分享数
+
+  author User @relation(fields: [authorId], references: [id]) // 作者
 }

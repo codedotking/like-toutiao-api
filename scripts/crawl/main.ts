@@ -17,15 +17,16 @@ interface Articele {
   title: string;
   source: string;
   authorId: number;
+  article_type: number;
+  abstract: string;
   user_info: userInfo;
 }
 
 const insertUserList = async (data: Articele[]) => {
-  const userList = data
-    .map((item) => {
-      const { user_info }: Articele = item;
-      return user_info;
-    })
+  const userList = data.map((item) => {
+    const { user_info }: Articele = item;
+    return user_info;
+  });
 
   // 插入用户信息
   const { count } = await db.user.createMany({
@@ -41,34 +42,38 @@ const insertUserList = async (data: Articele[]) => {
           follower_count: item.follower_count,
           avatar_url: item.avatar_url,
           password: "securepassword123",
-          email: `${item.user_id}@example.com`,
+          email: null,
         };
       }),
-    skipDuplicates: true
+    skipDuplicates: true,
   });
   console.log(count);
 };
-
 
 const insertArticleList = async (data: Articele[]) => {
   const userIdDict = await getUserIdDict();
 
   const articleList = data.map((item: Articele) => {
-    const { title = "", user_info: { user_id } } = item;
+    const {
+      title = "",
+      user_info: { user_id },
+      article_type,
+      abstract,
+    } = item;
     const authorId = userIdDict[user_id];
     return {
       title,
-      authorId
+      authorId,
+      type: article_type,
+      abstract,
     };
-  })
+  });
 
   const r = await db.article.createMany({
-    data: articleList
+    data: articleList,
   });
   console.log(r.count);
 };
-
-
 
 const getUserIdDict = async () => {
   const userList = await db.user.findMany();
@@ -76,10 +81,7 @@ const getUserIdDict = async () => {
     acc[item.user_id] = item.id;
     return acc;
   }, {} as Record<string, number>);
-}
-
-
-
+};
 
 const news = async () => {
   try {
@@ -88,10 +90,12 @@ const news = async () => {
     const articleList = data
       .map(({ content }: { content: string }) => {
         return JSON.parse(content) || {};
-      }).filter(({ user_info }: { user_info: userInfo }) => user_info) as Articele[];
+      })
+      .filter(
+        ({ user_info }: { user_info: userInfo }) => user_info
+      ) as Articele[];
     await insertUserList(articleList);
     await insertArticleList(articleList);
-
   } catch (e) {
     console.log(e);
   }
