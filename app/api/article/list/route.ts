@@ -1,10 +1,15 @@
 import { db } from "@/lib/db";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import jsonbig from "json-bigint";
+import { toSearchParams } from "@/lib/request";
 
-export const GET = async () => {
+export const GET = async (req:NextRequest) => {
+  const {pageNo = 1,pageSize = 10} = toSearchParams(req);
+  const take = Number(pageSize) || 10;
+  const skip = (Number(pageNo) - 1) * take;
   const res = await db.article.findMany({
-    take: 10,
+    take,
+    skip,
     include: {
       author: {
         select: {
