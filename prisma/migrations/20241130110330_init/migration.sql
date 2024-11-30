@@ -28,14 +28,19 @@ CREATE TABLE `Article` (
     `type` INTEGER NOT NULL,
     `published` BOOLEAN NOT NULL DEFAULT false,
     `authorId` INTEGER NOT NULL,
-    `like_count` INTEGER NOT NULL DEFAULT 0,
-    `digg_count` INTEGER NOT NULL DEFAULT 0,
-    `bury_count` INTEGER NOT NULL DEFAULT 0,
-    `comment_count` INTEGER NOT NULL DEFAULT 0,
-    `read_count` INTEGER NOT NULL DEFAULT 0,
-    `repin_count` INTEGER NOT NULL DEFAULT 0,
-    `share_count` INTEGER NOT NULL DEFAULT 0,
+    `like_count` BIGINT NOT NULL DEFAULT 0,
+    `digg_count` BIGINT NOT NULL DEFAULT 0,
+    `bury_count` BIGINT NOT NULL DEFAULT 0,
+    `comment_count` BIGINT NOT NULL DEFAULT 0,
+    `read_count` BIGINT NOT NULL DEFAULT 0,
+    `repin_count` BIGINT NOT NULL DEFAULT 0,
+    `share_count` BIGINT NOT NULL DEFAULT 0,
+    `is_crawled` BOOLEAN NOT NULL DEFAULT false,
+    `source` VARCHAR(191) NULL,
+    `article_id` VARCHAR(191) NULL,
 
+    UNIQUE INDEX `Article_article_id_key`(`article_id`),
+    UNIQUE INDEX `Article_article_id_source_key`(`article_id`, `source`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
