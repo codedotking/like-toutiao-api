@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { NextResponse } from "next/server";
+import jsonbig from "json-bigint";
 
 export const GET = async () => {
   const res = await db.article.findMany({
@@ -20,9 +21,10 @@ export const GET = async () => {
     },
   });
 
+
   return NextResponse.json({
     code: 200,
     msg: "api",
-    data: res,
+    data: jsonbig.parse(jsonbig.stringify(res)),
   });
 };
