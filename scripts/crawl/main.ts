@@ -77,6 +77,7 @@ const insertArticleList = async (data: Articele[]) => {
       source: "toutiao",
       is_crawled: true,
       article_id,
+      json: jsonbig.stringify(item),
     };
   });
 
@@ -94,7 +95,6 @@ export const news = async () => {
     const articleList = data
       .map(({ content }: { content: string }) => {
         const item = jsonbig.parse(content) || {};
-        console.log(item);
         return item;
       })
       .filter(

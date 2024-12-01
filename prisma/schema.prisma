@@ -53,8 +53,10 @@ model Article {
   author User @relation(fields: [authorId], references: [id]) // 作者
 
   is_crawled Boolean @default(false) // 是否爬取
-  source       String? // 爬取网站
+  source     String? // 爬取网站
   article_id String? @unique // 爬取头条数据时有用
+
+  json String? @db.LongText 
 
   // 联合主键
   @@unique([article_id, source])
