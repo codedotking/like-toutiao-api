@@ -87,13 +87,15 @@ const insertArticleList = async (data: Articele[]) => {
   console.log(r.count);
 };
 
-const news = async () => {
+export const news = async () => {
   try {
     const res = await fetch("https://lf.snssdk.com/api/news/feed/v88/");
     const { data = [] } = await res.json();
     const articleList = data
       .map(({ content }: { content: string }) => {
-        return jsonbig.parse(content) || {};
+        const item = jsonbig.parse(content) || {};
+        console.log(item);
+        return item;
       })
       .filter(
         ({ user_info }: { user_info: userInfo }) => user_info
