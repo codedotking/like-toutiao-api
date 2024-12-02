@@ -21,6 +21,22 @@ interface Articele {
   abstract: string;
   item_id: string;
   user_info: userInfo;
+
+  has_image: boolean;
+  has_m3u8_video: boolean;
+  has_mp4_video: boolean;
+  has_video: boolean;
+
+  image_type: string;
+  like_count: number;
+  digg_count: number;
+  bury_count: number;
+  comment_count: number;
+  read_count: number;
+  repin_count: number;
+  share_count: number;
+
+  publish_time: number;
 }
 
 const insertUserList = async (data: Articele[]) => {
@@ -66,6 +82,22 @@ const insertArticleList = async (data: Articele[]) => {
       article_type,
       abstract,
       item_id: article_id,
+
+      has_image = false,
+      has_m3u8_video = false,
+      has_mp4_video = false,
+      has_video = false,
+
+      image_type = "",
+      like_count = 0,
+      digg_count = 0,
+      bury_count = 0,
+      comment_count = 0,
+      read_count = 0,
+      repin_count = 0,
+      share_count = 0,
+      publish_time,
+
     } = item;
     const authorId = userIdDict[user_id];
     return {
@@ -78,6 +110,21 @@ const insertArticleList = async (data: Articele[]) => {
       is_crawled: true,
       article_id,
       json: jsonbig.stringify(item),
+
+      has_image,
+      has_m3u8_video,
+      has_mp4_video: !!has_mp4_video,
+      has_video,
+
+      image_type,
+      like_count,
+      digg_count,
+      bury_count,
+      comment_count,
+      read_count,
+      repin_count,
+      share_count,
+      publish_time,
     };
   });
 

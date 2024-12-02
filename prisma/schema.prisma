@@ -38,9 +38,17 @@ model Article {
 
   type Int // 类型 0 文章 1 微头条
 
-  published Boolean @default(false) // 是否发布
+  published    Boolean @default(false) // 是否发布
+  publish_time Int? // 发布时间
 
   authorId Int // 作者 ID
+
+  has_image      Boolean @default(false) // 是否有图片
+  has_m3u8_video Boolean @default(false) // 是否有 m3u8 视频
+  has_mp4_video  Boolean @default(false) // 是否有 mp4 视频
+  has_video      Boolean @default(false) // 是否有视频
+
+  image_type String? // 图片类型
 
   like_count    BigInt @default(0) // 点赞数
   digg_count    BigInt @default(0) // 推荐数
@@ -56,7 +64,7 @@ model Article {
   source     String? // 爬取网站
   article_id String? @unique // 爬取头条数据时有用
 
-  json String? @db.LongText 
+  json String? @db.LongText
 
   // 联合主键
   @@unique([article_id, source])
