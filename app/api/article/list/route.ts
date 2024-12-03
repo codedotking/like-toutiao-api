@@ -34,6 +34,9 @@ export const GET = async (req: NextRequest) => {
       has_video: true,
       image_type: true,
       publish_time: true,
+      images: {
+        select: { width: true, height: true, url: true, uri: true },
+      },
       author: {
         select: {
           name: true,
@@ -44,7 +47,6 @@ export const GET = async (req: NextRequest) => {
         },
       },
     },
-
     where: {
       published: true,
     },

@@ -13,6 +13,18 @@ interface userInfo {
   user_auth_info: string;
   live_info_type: number;
 }
+
+interface logPb {
+  article_type: string;
+  ui_style: string;
+}
+
+interface Image {
+  width: number;
+  height: number;
+  url: string;
+  uri: string;
+}
 interface Articele {
   title: string;
   source: string;
@@ -21,12 +33,10 @@ interface Articele {
   abstract: string;
   item_id: string;
   user_info: userInfo;
-
   has_image: boolean;
   has_m3u8_video: boolean;
   has_mp4_video: boolean;
   has_video: boolean;
-
   image_type: string;
   like_count: number;
   digg_count: number;
@@ -35,8 +45,10 @@ interface Articele {
   read_count: number;
   repin_count: number;
   share_count: number;
-
   publish_time: number;
+  middle_image: Image;
+  image_list: Image[];
+  log_pb: logPb;
 }
 
 const insertUserList = async (data: Articele[]) => {
@@ -75,19 +87,17 @@ const insertArticleList = async (data: Articele[]) => {
   }, {} as Record<string, number>);
 
   // 插入文章
-  const articleList = data.map((item: Articele) => {
+  data.map(async (item: Articele) => {
     const {
       title = "",
       user_info: { user_id },
       article_type,
       abstract,
       item_id: article_id,
-
       has_image = false,
       has_m3u8_video = false,
       has_mp4_video = false,
       has_video = false,
-
       image_type = "",
       like_count = 0,
       digg_count = 0,
@@ -97,10 +107,12 @@ const insertArticleList = async (data: Articele[]) => {
       repin_count = 0,
       share_count = 0,
       publish_time,
-
+      middle_image: { width, height, url, uri } = {},
+      image_list,
     } = item;
     const authorId = userIdDict[user_id];
-    return {
+
+    const _article = {
       title,
       authorId,
       type: article_type,
@@ -126,14 +138,44 @@ const insertArticleList = async (data: Articele[]) => {
       share_count,
       publish_time,
     };
-  });
 
-  const r = await db.article.createMany({
-    data: articleList,
-    skipDuplicates: true,
+    try {
+      await db.article.create({
+        data: {
+          ..._article,
+          images: {
+            createMany: {
+              data:
+                image_type == "image_list"
+                  ? image_list.map((image) => {
+                      return {
+                        width: image.width,
+                        height: image.height,
+                        url: image.url,
+                        uri: image.uri,
+                      } as Image;
+                    })
+                  : image_type == "image_right"
+                  ? [
+                      {
+                        width,
+                        height,
+                        url,
+                        uri,
+                      } as Image,
+                    ]
+                  : [],
+            },
+          },
+        },
+      });
+    } catch (e) {
+      console.log("冲突", e);
+    }
   });
-  console.log(r.count);
 };
+
+// 头条热榜：https://i.snssdk.com/feoffline/hot_list/template/hot_list/
 
 export const news = async () => {
   try {
@@ -142,10 +184,23 @@ export const news = async () => {
     const articleList = data
       .map(({ content }: { content: string }) => {
         const item = jsonbig.parse(content) || {};
-        return item;
+        const {
+          log_pb: { article_type, ui_style = "" },
+        } = item;
+        const image_type =
+          article_type == undefined ? null : ui_style.split("|")[1];
+        return { ...item, filter: article_type == "article", image_type };
       })
       .filter(
-        ({ user_info }: { user_info: userInfo }) => user_info
+        ({
+          user_info,
+          filter,
+        }: // image_type,
+        {
+          user_info: userInfo;
+          filter: boolean;
+          image_type: string | undefined;
+        }) => user_info && filter
       ) as Articele[];
     await insertUserList(articleList);
     await insertArticleList(articleList);

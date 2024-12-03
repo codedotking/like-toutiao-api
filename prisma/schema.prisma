@@ -29,6 +29,18 @@ model User {
   user_id String @unique // 爬取头条数据时有用
 }
 
+model Image {
+  id Int @id @default(autoincrement())
+  url    String @db.Text
+  height Int
+  width  Int
+  uri    String
+
+  articleId Int
+
+  article Article @relation(fields: [articleId], references: [id])
+}
+
 model Article {
   id Int @id @default(autoincrement())
 
@@ -65,6 +77,8 @@ model Article {
   article_id String? @unique // 爬取头条数据时有用
 
   json String? @db.LongText
+
+  images Image[]
 
   // 联合主键
   @@unique([article_id, source])
